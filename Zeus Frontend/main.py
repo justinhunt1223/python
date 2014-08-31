@@ -181,6 +181,7 @@ class MAIN:
         for btnPanel in self.aPanelButtons:
             if self.cMenuBase.Clicked():
                 if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[2]()
+        self.cStatusBar.Draw()
 
 cMouse = MOUSE()
 cMain = MAIN(cMouse)
