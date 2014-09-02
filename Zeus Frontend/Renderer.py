@@ -78,6 +78,7 @@ class RENDERER:
                 if line.rfind("ANS_TIME_POSITION=") > -1:
                     iNewPosition = int(line.split("=")[1].split('.')[0])
                     self.iTrackPosition = iNewPosition
+                    self.cMain.cMixer.Update_Label(iTrackPosition = iNewPosition)
             f.close()
             f = open(self.sOutput, 'w')
             f.write('\n')

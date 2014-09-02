@@ -1,5 +1,6 @@
 import mutagen
 import os.path
+import math
 
 class PLAYLIST:
 
@@ -106,6 +107,7 @@ class MIXER:
         self.cMain = cMain
         self.fVolume = float(self.cMain.Get_Config('volume', '0.1')) * 1.0
         self.bPaused = int(self.cMain.Get_Config('paused', '0'))
+        self.lblStatusItem = None
         self.bPlaylistRepeat = True
         self.bPlaylistRandom = False
         self.bAlbumArtUseFolder = True
@@ -145,6 +147,14 @@ class MIXER:
             self.plCurrentPlaylist.Add(iTrackID)
             self.Play_Track(iTrackID)
 
+    def Get_Label_Base_Text(self):
+        return self.dTrackInfo['Title'] + ' - ' + self.dTrackInfo['Artist']
+
+    def Update_Label(self, iTrackPosition = -1):
+        if iTrackPosition != -1:
+            sTime = str(int(math.floor(iTrackPosition / 60))).zfill(2) + ":" + str((iTrackPosition % 60)).zfill(2)
+            self.lblStatusItem.Text(sTime + " " + self.Get_Label_Base_Text())
+
     def Play_Track(self, iTrackID):
         if iTrackID == None:
             return False
@@ -159,6 +169,9 @@ class MIXER:
                            'Seeked': 0,
                            'Track ID': iTrackID}
         self.cMain.cRenderer.Play_Track(dTrack['Filename'])
+        if self.lblStatusItem == None:
+            self.lblStatusItem = self.cMain.cStatusBar.Add_Item('', True)
+        self.lblStatusItem.Text(self.Get_Label_Base_Text())
 
         try: mtAudioFile=mutagen.File(dTrack['Filename'])
         except: mtAudioFile=None
@@ -224,3 +237,4 @@ class MIXER:
                     self.bPaused = False
             except: pass
         self.cMain.Write_Config('paused', self.bPaused)
+        self.lblStatusItem.Text([self.Get_Label_Base_Text(), 'PAUSED'][self.bPaused])

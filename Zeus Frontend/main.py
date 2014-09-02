@@ -21,10 +21,13 @@ class TIMER:
 
     def __init__(self, iDelay, cMain):
         self.cMain = cMain
-        self.iExpire = self.cMain.iTick + iDelay
+        self.fExpire = self.cMain.fSecond + iDelay
 
     def Expired(self):
-        return self.iExpire > self.cMain.iTick
+        return self.fExpire <= self.cMain.fSecond
+
+    def Clear(self):
+        self.fExpire = 0
 
 class MOUSE:
 
@@ -42,6 +45,8 @@ class MAIN:
 
     def __init__(self, cMouse):
         self.batch = pyglet.graphics.Batch()
+        self.clock = clock.Clock()
+        self.fSecond = 0
         self.window = window
         self.cMouse = cMouse
         self.cMySQL = MySQL.MYSQL()
@@ -86,8 +91,6 @@ class MAIN:
         self.cRenderer.Seek(float(self.Get_Config('trackPosition', '0.0')) * 1.0)
         if self.cMixer.bPaused:
             self.cRenderer.Toggle_Pause()
-        self.clock = clock.Clock()
-        self.iTick = 0
 
     def Timer(self, iDelay): return TIMER(iDelay, self)
 
@@ -278,7 +281,7 @@ def draw(dt):
     if cMouse.bCanClick and cMouse.Clicked:
         cMouse.Clicked = False
         cMouse.bCanClick = False
-    cMain.iTick += cMain.clock.tick()
+    cMain.fSecond += cMain.clock.tick()
 
 pyglet.clock.schedule_interval(draw, 1/60.0)
 pyglet.app.run()
