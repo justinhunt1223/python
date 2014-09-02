@@ -1,4 +1,5 @@
 import pyglet
+from pyglet import clock
 
 from pyglet.gl import *
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -15,6 +16,15 @@ import StatusBar
 
 window = pyglet.window.Window(1024, 768)
 #window.set_fullscreen()
+
+class TIMER:
+
+    def __init__(self, iDelay, cMain):
+        self.cMain = cMain
+        self.iExpire = self.cMain.iTick + iDelay
+
+    def Expired(self):
+        return self.iExpire > self.cMain.iTick
 
 class MOUSE:
 
@@ -76,6 +86,10 @@ class MAIN:
         self.cRenderer.Seek(float(self.Get_Config('trackPosition', '0.0')) * 1.0)
         if self.cMixer.bPaused:
             self.cRenderer.Toggle_Pause()
+        self.clock = clock.Clock()
+        self.iTick = 0
+
+    def Timer(self, iDelay): return TIMER(iDelay, self)
 
     def Close(self):
         sMenus = ''
@@ -181,7 +195,6 @@ class MAIN:
         for btnPanel in self.aPanelButtons:
             if self.cMenuBase.Clicked():
                 if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[2]()
-        #test
         self.cStatusBar.Draw()
 
 cMouse = MOUSE()
@@ -265,6 +278,7 @@ def draw(dt):
     if cMouse.bCanClick and cMouse.Clicked:
         cMouse.Clicked = False
         cMouse.bCanClick = False
+    cMain.iTick += cMain.clock.tick()
 
 pyglet.clock.schedule_interval(draw, 1/60.0)
 pyglet.app.run()
