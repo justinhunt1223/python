@@ -21,7 +21,8 @@ class TIMER:
 
     def __init__(self, iDelay, cMain):
         self.cMain = cMain
-        self.fExpire = self.cMain.fSecond + iDelay
+        self.iDelay = iDelay
+        self.fExpire = self.cMain.fSecond + self.iDelay
 
     def Expired(self):
         return self.fExpire <= self.cMain.fSecond
@@ -29,17 +30,38 @@ class TIMER:
     def Clear(self):
         self.fExpire = 0
 
+    def Reset(self):
+        self.fExpire = self.cMain.fSecond + self.iDelay
+
 class MOUSE:
 
     def __init__(self):
+        self.cMain = None
         self.iDragX = -1
         self.iDragY = -1
         self.iX = -1
         self.iY = -1
         self.Clicked = False
-        self.LongPressed = False
+        self.LongClick = False
         self.bCanClick = True
         self.bDragging = False
+        self.cLongClickTimer = None
+        self.cRapidTimer = None
+        self.bDown = False
+
+    def Reset_Long_Click_Timer(self):
+        # 1 second long-press
+        if self.cLongClickTimer == None:
+            self.cLongClickTimer = TIMER(1, self.cMain)
+        else:
+            self.cLongClickTimer.Reset()
+
+    def Reset_Rapid_Timer(self):
+        # 1 second long-press
+        if self.cRapidTimer == None:
+            self.cRapidTimer = TIMER(0.1, self.cMain)
+        else:
+            self.cRapidTimer.Reset()
 
 class MAIN:
 
@@ -49,6 +71,9 @@ class MAIN:
         self.fSecond = 0
         self.window = window
         self.cMouse = cMouse
+        cMouse.cMain = self
+        cMouse.Reset_Long_Click_Timer()
+        cMouse.Reset_Rapid_Timer()
         self.cMySQL = MySQL.MYSQL()
         self.cScanMusic = MusicLibrary.SCAN_MUSIC(self)
         self.cMusicLibrary = MusicLibrary.MUSIC_LIBRARY(self)
@@ -103,6 +128,7 @@ class MAIN:
         sMenus = sMenus.rstrip(',')
         self.Write_Config('menus', sMenus)
         self.Write_Config('menuCount', self.iCurrentIndex)
+        self.cMixer.Close()
 
     def Panel_Quit(self):
         pass
@@ -123,10 +149,10 @@ class MAIN:
         self.cMixer.Play_Previous_Track()
 
     def Panel_Volume_Up(self):
-        self.cMixer.Volume_Up(0.05)
+        self.cMixer.Volume_Up(0.01)
 
     def Panel_Volume_Down(self):
-        self.cMixer.Volume_Down(0.05)
+        self.cMixer.Volume_Down(0.01)
 
     def Write_Config(self, sEntry, sData):
         if len(self.cMySQL.Run_Query("SELECT * FROM Config WHERE Entry = %s;", (sEntry))) == 0:
@@ -198,6 +224,8 @@ class MAIN:
         for btnPanel in self.aPanelButtons:
             if self.cMenuBase.Clicked():
                 if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[2]()
+            if self.cMenuBase.Rapid_Clicked():
+                if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[3]()
         self.cStatusBar.Draw()
 
 cMouse = MOUSE()
@@ -245,8 +273,9 @@ def on_mouse_press(x, y, button, modifiers):
         cMouse.iX = x
         cMouse.iY = y
         cMouse.Clicked = False
-        cMouse.LongPressed = False
+        cMouse.LongClick = False
         cMouse.bCanClick = True
+        cMouse.bDown = True
         # Set bDragging to True since we don't know what direction the drag is going to be
         # and some functions need to know if dragging is taking place.
         cMouse.bDragging = True
@@ -254,6 +283,7 @@ def on_mouse_press(x, y, button, modifiers):
         cMouse.iDragY = 0
         cMain.fDragSpeedX = 0.0
         cMain.fDragSpeedY = 0.0
+        cMouse.Reset_Long_Click_Timer()
 
 @window.event
 def on_mouse_release(x, y, button, modifiers):
@@ -273,14 +303,24 @@ def on_mouse_release(x, y, button, modifiers):
         cMouse.iDragX = 0
         cMouse.iDragY = 0
         cMouse.bDragging = False
+        cMouse.bDown = False
+        cMouse.LongClick = False
 
 def draw(dt):
     window.clear()
     cMain.Draw()
     # To capture a mouse click, a few flags are used.
-    if cMouse.bCanClick and cMouse.Clicked:
-        cMouse.Clicked = False
-        cMouse.bCanClick = False
+    if cMouse.bCanClick:
+        if cMouse.bDown:
+            if cMouse.cLongClickTimer.Expired():
+                # Mouse was long clicked.
+                cMouse.LongClick = True
+                cMouse.cLongClickTimer.Reset()
+            if cMouse.cRapidTimer.Expired():
+                cMouse.cRapidTimer.Reset()
+        if cMouse.Clicked:
+            cMouse.Clicked = False
+            cMouse.bCanClick = False
     cMain.fSecond += cMain.clock.tick()
 
 pyglet.clock.schedule_interval(draw, 1/60.0)

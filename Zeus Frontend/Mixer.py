@@ -121,12 +121,12 @@ class MIXER:
                            'Seeked': 0}
         self.aPlaylists = []
         self.plCurrentPlaylist = PLAYLIST('Default', self.cMain)
-        
-        # Set defaults.
-        self.cMain.Get_Config('equalizerSettings', "9,10,11,12,13,13,12,11,10,9")
-        self.cMain.Get_Config('paused', self.bPaused)
-        self.cMain.Get_Config('trackPosition', 0)
-        self.cMain.Get_Config('currentPlaylistName', 'default')
+        self.aEqualizer = self.cMain.Get_Config('equalizerSettings', "9:10:11:12:13:13:12:11:10:9").split(':')
+
+    def Close(self):
+        sEq = ''
+        for sEqualizerSetting in self.aEqualizer: sEq = sEq + sEqualizerSetting + ':'
+        self.cMain.Write_Config('equalizerSettings', sEq[:-1])
 
     def Add_Track_To_Playlist(self, iArtistID, iAlbumID, iTrackID, bClearPlaylist = False):
         if bClearPlaylist: self.plCurrentPlaylist.Clear()
@@ -168,7 +168,12 @@ class MIXER:
                            'Length': 0,
                            'Seeked': 0,
                            'Track ID': iTrackID}
+        
+        # Update the equalizer setting when the track is played.
         self.cMain.cRenderer.Play_Track(dTrack['Filename'])
+        self.cMain.cRenderer.Update_Equalizer(self.aEqualizer)
+        
+        # The status item text needs to modified (or the item created if its the first track being played).
         if self.lblStatusItem == None:
             self.lblStatusItem = self.cMain.cStatusBar.Add_Item('', True)
         self.lblStatusItem.Text(self.Get_Label_Base_Text())

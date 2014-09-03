@@ -66,6 +66,14 @@ class BASE:
     def Clicked(self):
         return self.cMain.cMouse.Clicked
 
+    def Long_Clicked(self):
+        return self.cMain.cMouse.LongClick
+
+    def Rapid_Clicked(self):
+        if self.cMain.cMouse.bDown:
+            return self.cMain.cMouse.cRapidTimer.Expired()
+        return False
+
     def Mouse_Over(self, sprite = None, label = None):
         # Returns true if mouse is over passed object.
         if sprite != None:

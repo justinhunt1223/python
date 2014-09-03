@@ -23,6 +23,7 @@ class RENDERER:
         #TODO: This doesn't seem to be stopping MPlayer...
         self.renderer.kill()
         self.renderer = None
+        subprocess.Popen('sudo killall mplayer', shell=True)
 
     def MPlayer_Send(self, sCommand): subprocess.Popen('echo "' + sCommand + '\n" >> ' + self.sFifo, shell = True)
 
@@ -30,9 +31,9 @@ class RENDERER:
     def Get_Album_Art(self): return self.cMain.cMixer.dTrackInfo['Album Art']
     def Get_Track_Number(self): return self.cMain.cMixer.dTrackInfo['Track #']
 
-    def Update_Equalizer(self, sEqualizerSetting):
+    def Update_Equalizer(self, aEqualizer):
         sEq = ''
-        for sEqSetting in sEqualizerSetting: sEq = sEq + str(-1 * (sEqSetting - 12)) + ':'
+        for sEqSetting in aEqualizer: sEq = sEq + str(-1 * (int(sEqSetting) - 12)) + ':'
         self.MPlayer_Send('af_cmdline equalizer ' + sEq[:-1])
 
     def Get_Position(self): return self.iTrackPosition
@@ -55,21 +56,15 @@ class RENDERER:
         self.MPlayer_Send('loadfile ' + sFilename.replace(' ', '\ '))
         self.iTrackPosition = 0
         self.MPlayer_Send('get_time_pos')
-        self.Set_Volume(self.cMain.cMixer.fVolume, bMessage = False)
-        #resources.main.getMenu('Panel').addStatusItem('currentTrack', self.mixer.trackInfo['Track'] + ' - ' + self.mixer.trackInfo['Artist'] + ' - ' + self.mixer.trackInfo['Album'], repeat=True, urgent=True)
+        self.Set_Volume(self.cMain.cMixer.fVolume)
 
     def Toggle_Pause(self):
         self.MPlayer_Send('pause')
 
-    def Set_Volume(self, fLevel, bMessage = True):
+    def Set_Volume(self, fLevel):
+        print fLevel
         self.cMain.Write_Config('volume', fLevel)
         self.MPlayer_Send('volume ' + str(fLevel * 100) + ' 1')
-        if bMessage:
-            try:
-                #resources.main.getMenu('Panel').addStatusItem('setVolume', 'Volume: ' + str(fLevel * 100) + '%', bUrgent = True, iTime = 2500)
-                pass
-            except:
-                pass
 
     def Hook_MPlayer(self):
         if self.bPlaying:
