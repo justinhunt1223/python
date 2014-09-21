@@ -11,7 +11,7 @@ class RENDERER:
         self.sFifo = '/home/justin/.mplayer/fifo'
         self.sOutput = '/home/justin/.mplayer/output'
         subprocess.Popen('mkfifo ' + self.sFifo, shell=True)
-        subprocess.Popen('sudo killall mplayer', shell=True)
+        #subprocess.Popen('sudo killall mplayer', shell=True)
         self.renderer = subprocess.Popen('mplayer -slave -quiet -idle -input file=' + self.sFifo + ' > ' + self.sOutput, shell = True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
         pyglet.clock.schedule_interval(lambda e: self.Hook_MPlayer(), 1)
 
@@ -62,7 +62,6 @@ class RENDERER:
         self.MPlayer_Send('pause')
 
     def Set_Volume(self, fLevel):
-        print fLevel
         self.cMain.Write_Config('volume', fLevel)
         self.MPlayer_Send('volume ' + str(fLevel * 100) + ' 1')
 

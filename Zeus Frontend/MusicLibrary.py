@@ -9,7 +9,7 @@ class SCAN_MUSIC:
         self.aScanFiles = []
         self.cMain = cMain
         self.cMySQL = cMain.cMySQL
-        #self.Scan()
+        self.Scan()
 
     def Scan(self):
         #Scan should be a one time thing since it takes so much time.

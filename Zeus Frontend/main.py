@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import pyglet
 from pyglet import clock
 

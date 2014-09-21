@@ -171,7 +171,7 @@ class MIXER:
         
         # Update the equalizer setting when the track is played.
         self.cMain.cRenderer.Play_Track(dTrack['Filename'])
-        self.cMain.cRenderer.Update_Equalizer(self.aEqualizer)
+        #self.cMain.cRenderer.Update_Equalizer(self.aEqualizer)
         
         # The status item text needs to modified (or the item created if its the first track being played).
         if self.lblStatusItem == None:
