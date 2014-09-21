@@ -16,6 +16,9 @@ import Renderer
 import Mixer
 import StatusBar
 
+import datetime
+import time
+
 window = pyglet.window.Window(1024, 768)
 #window.set_fullscreen()
 
@@ -110,6 +113,13 @@ class MAIN:
                               [self.cMenuBase.Get_Sprite('images/panel/media-prev.png'), (515, 35), self.Panel_Previous, lambda: None],
                               [self.cMenuBase.Get_Sprite('images/panel/volume-up.png'), (886, 74), lambda: None, self.Panel_Volume_Up],
                               [self.cMenuBase.Get_Sprite('images/panel/volume-down.png'), (948, 74), lambda: None, self.Panel_Volume_Down]]
+        
+        # Date/Time is refreshed once a second.
+        self.lblTime = self.cMenuBase.Get_Label("", 220, 81, font_size = 22, anchor_x = "left", anchor_y = "bottom", bold = True, color = (143, 249, 255, 255))
+        self.lblDate = self.cMenuBase.Get_Label("", 220, 52, font_size = 22, anchor_x = "left", anchor_y = "bottom", bold = True, color = (143, 249, 255, 255))
+        self.Update_Date_Time()
+        pyglet.clock.schedule_interval(lambda e: self.Update_Date_Time(), 1)
+        
         for btnPanel in self.aPanelButtons:
             btnPanel[0].set_position(btnPanel[1][0], btnPanel[1][1])
         self.fps = pyglet.clock.ClockDisplay()
@@ -119,9 +129,13 @@ class MAIN:
         if self.cMixer.bPaused:
             self.cRenderer.Toggle_Pause()
 
+    def Update_Date_Time(self):
+        self.lblTime.text = time.strftime("%H:%M:%S")
+        self.lblDate.text = datetime.date.today().strftime("%d %B")
+
     def Timer(self, iDelay): return TIMER(iDelay, self)
 
-    def Close(self):
+    def Save(self):
         sMenus = ''
         for m in self.aMenuQueue:
             for sName, mMenu in self.dMenus.iteritems():
@@ -130,7 +144,6 @@ class MAIN:
         sMenus = sMenus.rstrip(',')
         self.Write_Config('menus', sMenus)
         self.Write_Config('menuCount', self.iCurrentIndex)
-        self.cMixer.Close()
 
     def Panel_Quit(self):
         pass
@@ -193,7 +206,6 @@ class MAIN:
         self.imgBackground.blit(0, 0)
         self.batch.draw()
         for m in self.aMenuQueue: m.Draw()
-        self.fps.draw()
         # Menu changes
         if self.iTargetIndex != self.iCurrentIndex:
             self.bMoving = True
@@ -205,6 +217,7 @@ class MAIN:
                     self.aDraw[0] = 0
                     self.aDraw[1] = 0
                     self.iCurrentIndex += 1
+                    self.Save()
             else:
                 self.aDraw[0] += self.aDraw[1]
                 self.aDraw[1] += self.iMoveSpeed()
@@ -214,6 +227,7 @@ class MAIN:
                     self.aDraw[1] = 0
                     self.iCurrentIndex -= 1
                     self.Unqueue_Menu()
+                    self.Save()
         elif self.aDraw[0] != 0:
             if self.aDraw[0] > 0:
                 self.aDraw[1] += self.iMoveSpeed()
@@ -229,6 +243,7 @@ class MAIN:
             if self.cMenuBase.Rapid_Clicked():
                 if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[3]()
         self.cStatusBar.Draw()
+        #self.fps.draw()
 
 cMouse = MOUSE()
 cMain = MAIN(cMouse)
@@ -262,12 +277,6 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
         # drug more than 15 pixels in any direction
         if abs(cMouse.iDragX) > 15 or abs(cMouse.iDragY) > 15:# or cMouse.iDragX < -15 or cMouse.iDragY < -15:
             cMouse.bCanClick = False
-
-@window.event
-def on_close():
-    for m in cMain.dMenus.values(): m.Close()
-    cMain.Close()
-    cMain.cRenderer.Close()
 
 @window.event
 def on_mouse_press(x, y, button, modifiers):

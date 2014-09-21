@@ -26,7 +26,7 @@ class BASE:
     def Draw_List(self, x, y, aItems, iLabelIndex, iSelectedIndex, batch, bFade, bAlpha, bSetY = False):
         iSelectedIndex = -1
         x += self.Get_X()
-        if self.cMain.cMouse.bDragging:
+        if self.cMain.cMouse.bDragging and len(aItems) > 8:
             if self.Is_Active() and not bFade:
                 if self.cMain.cMouse.bDragging == "y":
                     self.dListInfo["Scroll Y"] = min(max(self.dListInfo["Scroll Y"] + int(-self.cMain.cMouse.iDragY / 5), 0), len(aItems) * self.dListInfo["Item Height"] - self.dListInfo["List Height"])

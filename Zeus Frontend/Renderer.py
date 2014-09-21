@@ -14,16 +14,13 @@ class RENDERER:
         #subprocess.Popen('sudo killall mplayer', shell=True)
         self.renderer = subprocess.Popen('mplayer -slave -quiet -idle -input file=' + self.sFifo + ' > ' + self.sOutput, shell = True, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
         pyglet.clock.schedule_interval(lambda e: self.Hook_MPlayer(), 1)
+        pyglet.clock.schedule_interval(lambda e: self.Save(), 5)
 
-    def Close(self):
+    def Save(self):
         fPosition = '0.0'
         if self.bPlaying:
             fPosition = self.iTrackPosition / self.Get_Track_Length()
         self.cMain.Write_Config('trackPosition', fPosition)
-        #TODO: This doesn't seem to be stopping MPlayer...
-        self.renderer.kill()
-        self.renderer = None
-        subprocess.Popen('sudo killall mplayer', shell=True)
 
     def MPlayer_Send(self, sCommand): subprocess.Popen('echo "' + sCommand + '\n" >> ' + self.sFifo, shell = True)
 

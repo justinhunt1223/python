@@ -49,7 +49,7 @@ class MENU(MenuBase.BASE):
         self.Draw_List(83, 177, self.aArtists, 0, -1, self.batch, self.bFade, self.iLabelColorAlpha, bSetY = True)
         self.dListInfo['Scroll Y'] = iScrollY
 
-    def Close(self):
+    def Save(self):
         self.cMain.Write_Config('scrollY', self.dListInfo['Scroll Y'])
         self.cMain.Write_Config('artistsScrollY', self.dListInfo['Scroll Y Artists'])
         self.cMain.Write_Config('artistsStartIndex', self.dListInfo['Start Index Artists'])
@@ -194,3 +194,4 @@ class MENU(MenuBase.BASE):
                 self.iLabelColorAlpha = 255
                 self.iLabelColorAlphaSpeed = abs(self.iLabelColorAlphaSpeed) * -1
                 self.bFade = False
+                self.Save()

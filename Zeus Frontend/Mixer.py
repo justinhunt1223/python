@@ -123,7 +123,8 @@ class MIXER:
         self.plCurrentPlaylist = PLAYLIST('Default', self.cMain)
         self.aEqualizer = self.cMain.Get_Config('equalizerSettings', "9:10:11:12:13:13:12:11:10:9").split(':')
 
-    def Close(self):
+    def Save(self):
+        # TODO: Only save equalizer when it is changed (which isn't implemented yet).
         sEq = ''
         for sEqualizerSetting in self.aEqualizer: sEq = sEq + sEqualizerSetting + ':'
         self.cMain.Write_Config('equalizerSettings', sEq[:-1])

@@ -9,21 +9,22 @@ class SCAN_MUSIC:
         self.aScanFiles = []
         self.cMain = cMain
         self.cMySQL = cMain.cMySQL
-        self.Scan()
+        #self.Scan()
 
     def Scan(self):
         #Scan should be a one time thing since it takes so much time.
         aFiles = []
-        i = 0.0
-        t0 = time.clock()
         for sDir in self.aDirectories:
             for sDirPath, aDirNames, aFilenames in os.walk(sDir):
                 for sFilename in [f for f in aFilenames if f.endswith(".mp3") or f.endswith(".ogg") or f.endswith(".flac") or f.endswith(".wma")]:
                     sFilename = os.path.join(sDirPath, sFilename)
                     self.Scan_File(sFilename)
-                    i += 1.0
+                    # Not used. A scan is a one time thing right now.
+                    #self.Add_Filename_To_Scan(sFilename)
         self.aScanFiles = aFiles
-        print time.clock() - t0
+
+    def Add_Filename_To_Scan(self, sFilename):
+        self.cMySQL.Run_Query("INSERT INTO `FilesToScan` (Filename) VALUES (%s);", (sFilename))
 
     def Get_Artist_ID(self, sArtist):
         qArtistID = self.cMySQL.Run_Query("SELECT ArtistID FROM Artists WHERE ArtistName = %s;", (sArtist))

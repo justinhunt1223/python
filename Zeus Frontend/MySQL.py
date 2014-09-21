@@ -44,6 +44,10 @@ class MYSQL:
             self.Run_Query("""CREATE TABLE FailedToScan (Filename VARCHAR(255),
                                                          PRIMARY KEY (Filename)
                                                          ) ENGINE=InnoDB;""")
+        if len(self.Run_Query("SHOW TABLES LIKE 'FilesToScan';")) == 0:
+            self.Run_Query("""CREATE TABLE FilesToScan (Filename VARCHAR(255),
+                                                        PRIMARY KEY (Filename)
+                                                        ) ENGINE=InnoDB;""")
         if len(self.Run_Query("SHOW TABLES LIKE 'Config';")) == 0:
             self.Run_Query("""CREATE TABLE Config (Entry VARCHAR(255),
                                                    PRIMARY KEY (Entry),
