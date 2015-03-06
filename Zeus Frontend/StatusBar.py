@@ -33,6 +33,10 @@ class STATUS_ITEM:
         if sText == None:
             return self.lblText.text
         else:
+            try:
+                sText = sText.decode("latin-1")
+            except:
+                pass
             self.lblText.text = sText
 
 class STATUS_BAR(MenuBase.BASE):

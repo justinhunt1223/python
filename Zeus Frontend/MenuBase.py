@@ -129,8 +129,12 @@ class BASE:
     def Get_Label(self, sText, x, y, font_size = 36, anchor_x = "center", anchor_y = "center", color = (255, 255, 255, 255), bold = False, batch = None, width = None, height = None):
         if not batch:
             batch = self.cMain.batch
+        try:
+            sText = sText.decode("latin-1")
+        except:
+            pass
         return pyglet.text.Label(sText,
-                                 font_name = 'DejaVu Sans',
+                                 font_name = "DejaVu Sans",
                                  font_size = font_size,
                                  x = x,
                                  y = y,
