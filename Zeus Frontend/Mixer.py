@@ -2,16 +2,16 @@ import mutagen
 import os.path
 import math
 
-class PLAYLIST:
+class Playlist:
 
     def __init__(self, sName, cMain):
         self.sName = sName
         self.cMain = cMain
-        self.iIndex = int(self.cMain.Get_Config('currentPlaylistIndex', '-1'))
-        self.aTracks = [int(self.cMain.Get_Config('currentTrackID', '-1'))]
+        self.iIndex = int(self.cMain.GetConfig('currentPlaylistIndex', '-1'))
+        self.aTracks = [int(self.cMain.GetConfig('currentTrackID', '-1'))]
         if -1 in self.aTracks: self.aTracks.remove(-1)
 
-    def Get_Current_Track(self):
+    def GetCurrentTrack(self):
         if self.aTracks:
             return self.aTracks[self.iIndex]
         else:
@@ -27,25 +27,25 @@ class PLAYLIST:
             iTrackID = self.aTracks[self.iIndex]
         else:
             iTrackID = ''
-        self.cMain.Write_Config('currentTrackID', iTrackID)
-        self.cMain.Write_Config('currentTrackPlaylistIndex', self.iIndex)
+        self.cMain.WriteConfig('currentTrackID', iTrackID)
+        self.cMain.WriteConfig('currentTrackPlaylistIndex', self.iIndex)
 
     def Add(self, iTrackID):
         self.aTracks.append(iTrackID)
         self.iIndex = len(self.aTracks) - 1
         self.Save()
 
-    def Get_Previous_Track(self, bRepeat, bRandom):
+    def GetPreviousTrack(self, bRepeat, bRandom):
         if len(self.aTracks) == 0:
             return None
         elif len(self.aTracks) == 1:
             self.iIndex = 0
-            qCurrentTrack = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE TrackID = %s;", (self.aTracks[self.iIndex]))[0]
+            qCurrentTrack = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE TrackID = %s;", (self.aTracks[self.iIndex]))[0]
             iTrackNumber = int(qCurrentTrack['TrackNumber'])
             iAlbumID = int(qCurrentTrack['AlbumID'])
             if iTrackNumber == 0:
                 #If the album has no track numbers, then get the previous track id based on alphabetical order.
-                qAlbum = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackTitle ASC;", (iAlbumID))
+                qAlbum = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackTitle ASC;", (iAlbumID))
                 aTrackID = [i['TrackID'] for i in qAlbum]
                 iIndex = aTrackID.index(qCurrentTrack['TrackID'])
                 if iIndex == (0):
@@ -55,30 +55,30 @@ class PLAYLIST:
                     #Return the current index - 1.
                     return aTrackID[iIndex - 1]
             else:
-                aPreviousTrack = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE AlbumID = %s AND TrackNumber < %s ORDER BY TrackNumber DESC LIMIT 1;", (iAlbumID, iTrackNumber))
+                aPreviousTrack = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE AlbumID = %s AND TrackNumber < %s ORDER BY TrackNumber DESC LIMIT 1;", (iAlbumID, iTrackNumber))
                 if aPreviousTrack:
                     #Found previous track.
                     return aPreviousTrack[0]['TrackID']
                 else:
                     #Either the current track is the last in the album or there is only 1 track in the album. Either way, get the first track in the album.
-                    aLastTrack = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackNumber DESC LIMIT 1;", (iAlbumID))[0]
+                    aLastTrack = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackNumber DESC LIMIT 1;", (iAlbumID))[0]
                     return aLastTrack['TrackID']
         else:
             self.iIndex -= 1
             if self.iIndex < 0: self.iIndex = (len(self.aTracks) - 1)
             return self.aTracks[self.iIndex]
 
-    def Get_Next_Track(self, bRepeat, bRandom):
+    def GetNextTrack(self, bRepeat, bRandom):
         if len(self.aTracks) == 0:
             return None
         elif len(self.aTracks) == 1:
             self.iIndex = 0
-            qCurrentTrack = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE TrackID = %s;", (self.aTracks[self.iIndex]))[0]
+            qCurrentTrack = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE TrackID = %s;", (self.aTracks[self.iIndex]))[0]
             iTrackNumber = int(qCurrentTrack['TrackNumber'])
             iAlbumID = int(qCurrentTrack['AlbumID'])
             if iTrackNumber == 0:
                 #If the album has no track numbers, then get the next track id based on alphabetical order.
-                qAlbum = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackTitle ASC;", (iAlbumID))
+                qAlbum = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackTitle ASC;", (iAlbumID))
                 aTrackID = [i['TrackID'] for i in qAlbum]
                 iIndex = aTrackID.index(qCurrentTrack['TrackID'])
                 if iIndex == (len(aTrackID) - 1):
@@ -88,25 +88,25 @@ class PLAYLIST:
                     #Return the current index + 1.
                     return aTrackID[iIndex + 1]
             else:
-                aNextTrack = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE AlbumID = %s AND TrackNumber > %s ORDER BY TrackNumber ASC LIMIT 1;", (iAlbumID, iTrackNumber))
+                aNextTrack = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE AlbumID = %s AND TrackNumber > %s ORDER BY TrackNumber ASC LIMIT 1;", (iAlbumID, iTrackNumber))
                 if aNextTrack:
                     #Found next track.
                     return aNextTrack[0]['TrackID']
                 else:
                     #Either the current track is the last in the album or there is only 1 track in the album. Either way, get the first track in the album.
-                    aFirstTrack = self.cMain.cMySQL.Run_Query("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackNumber ASC LIMIT 1;", (iAlbumID))[0]
+                    aFirstTrack = self.cMain.cMySQL.RunQuery("SELECT * FROM Tracks WHERE AlbumID = %s ORDER BY TrackNumber ASC LIMIT 1;", (iAlbumID))[0]
                     return aFirstTrack['TrackID']
         else:
             self.iIndex += 1
             if self.iIndex > len(self.aTracks) - 1: self.iIndex = 0
             return self.aTracks[self.iIndex]
 
-class MIXER:
+class Mixer:
 
     def __init__(self, cMain):
         self.cMain = cMain
-        self.fVolume = float(self.cMain.Get_Config('volume', '0.1')) * 1.0
-        self.bPaused = int(self.cMain.Get_Config('paused', '0'))
+        self.fVolume = float(self.cMain.GetConfig('volume', '0.1')) * 1.0
+        self.bPaused = int(self.cMain.GetConfig('paused', '0'))
         self.lblStatusItem = None
         self.bPlaylistRepeat = True
         self.bPlaylistRandom = False
@@ -120,46 +120,46 @@ class MIXER:
                            'Length': 0,
                            'Seeked': 0}
         self.aPlaylists = []
-        self.plCurrentPlaylist = PLAYLIST('Default', self.cMain)
-        self.aEqualizer = self.cMain.Get_Config('equalizerSettings', "9:10:11:12:13:13:12:11:10:9").split(':')
+        self.plCurrentPlaylist = Playlist('Default', self.cMain)
+        self.aEqualizer = self.cMain.GetConfig('equalizerSettings', "9:10:11:12:13:13:12:11:10:9").split(':')
 
     def Save(self):
         # TODO: Only save equalizer when it is changed (which isn't implemented yet).
         sEq = ''
         for sEqualizerSetting in self.aEqualizer: sEq = sEq + sEqualizerSetting + ':'
-        self.cMain.Write_Config('equalizerSettings', sEq[:-1])
+        self.cMain.WriteConfig('equalizerSettings', sEq[:-1])
 
-    def Add_Track_To_Playlist(self, iArtistID, iAlbumID, iTrackID, bClearPlaylist = False):
+    def AddTrackToPlaylist(self, iArtistID, iAlbumID, iTrackID, bClearPlaylist = False):
         if bClearPlaylist: self.plCurrentPlaylist.Clear()
         if iAlbumID: #queue all tracks in album
-            for dTrack in self.cMain.cMusicLibrary.Get_Tracks(iAlbumID):
+            for dTrack in self.cMain.cMusicLibrary.GetTracks(iAlbumID):
                 self.currentPlaylist.Add(dTrack['TrackID'])
             #sources.main.getMenu('Now Playing').updateScrollInfo(resources.main.getMenu('Now Playing').playlistScrollInfo, self.currentPlaylist.getItems())
             if not self.cMain.cRenderer.bPlaying or bClearPlaylist:
-                self.Play_Track(self.plCurrentPlaylist.Get_Next_Track(bRepeat = self.bPlaylistRepeat, bRandom = self.bPlaylistRandom))
+                self.PlayTrack(self.plCurrentPlaylist.GetNextTrack(bRepeat = self.bPlaylistRepeat, bRandom = self.bPlaylistRandom))
         elif iArtistID:
-            for dctAlbum in self.cMain.cMusicLibrary.Get_Albums(iArtistID):
-                for dTrack in self.cMain.cMusicLIbrary.Get_Tracks(dctAlbum['AlbumID']):
+            for dctAlbum in self.cMain.cMusicLibrary.GetAlbums(iArtistID):
+                for dTrack in self.cMain.cMusicLIbrary.GetTracks(dctAlbum['AlbumID']):
                     self.plCurrentPlaylist.Add(dTrack['TrackID'])
             #resources.main.getMenu('Now Playing').updateScrollInfo(resources.main.getMenu('Now Playing').playlistScrollInfo, self.currentPlaylist.getItems())
             if not self.cMain.cRenderer.bPlaying or bClearPlaylist:
-                self.Play_Track(self.plCurrentPlaylist.Get_Next_Track(bRepeat = self.bPlaylistRepeat, bRandom = self.bPlaylistRandom))
+                self.PlayTrack(self.plCurrentPlaylist.GetNextTrack(bRepeat = self.bPlaylistRepeat, bRandom = self.bPlaylistRandom))
         elif iTrackID:
             self.plCurrentPlaylist.Add(iTrackID)
-            self.Play_Track(iTrackID)
+            self.PlayTrack(iTrackID)
 
-    def Get_Label_Base_Text(self):
+    def GetLabelBaseText(self):
         return self.dTrackInfo['Title'] + ' - ' + self.dTrackInfo['Artist']
 
-    def Update_Label(self, iTrackPosition = -1):
+    def UpdateLabel(self, iTrackPosition = -1):
         if iTrackPosition != -1:
             sTime = str(int(math.floor(iTrackPosition / 60))).zfill(2) + ":" + str((iTrackPosition % 60)).zfill(2)
-            self.lblStatusItem.Text(sTime + " " + self.Get_Label_Base_Text())
+            self.lblStatusItem.Text(sTime + " " + self.GetLabelBaseText())
 
-    def Play_Track(self, iTrackID):
+    def PlayTrack(self, iTrackID):
         if iTrackID == None:
             return False
-        dTrack = self.cMain.cMusicLibrary.Get_Track_Info(iTrackID)
+        dTrack = self.cMain.cMusicLibrary.GetTrackInfo(iTrackID)
         self.dTrackInfo = {'Artist': dTrack['ArtistName'],
                            'Album': dTrack['AlbumName'],
                            'Title': dTrack['TrackTitle'],
@@ -171,13 +171,13 @@ class MIXER:
                            'Track ID': iTrackID}
         
         # Update the equalizer setting when the track is played.
-        self.cMain.cRenderer.Play_Track(dTrack['Filename'])
+        self.cMain.cRenderer.PlayTrack(dTrack['Filename'])
         #self.cMain.cRenderer.Update_Equalizer(self.aEqualizer)
         
         # The status item text needs to modified (or the item created if its the first track being played).
         if self.lblStatusItem == None:
-            self.lblStatusItem = self.cMain.cStatusBar.Add_Item('', True)
-        self.lblStatusItem.Text(self.Get_Label_Base_Text())
+            self.lblStatusItem = self.cMain.cStatusBar.AddItem('', True)
+        self.lblStatusItem.Text(self.GetLabelBaseText())
 
         try: mtAudioFile=mutagen.File(dTrack['Filename'])
         except: mtAudioFile=None
@@ -189,7 +189,7 @@ class MIXER:
                     fileAlbumArt = open('artwork.png', 'wb')
                     fileAlbumArt.write(mtAudioFile['APIC:'].data)
                     fileAlbumArt.close()
-                    self.dTrackInfo['Album Art'] = self.cMain.cMenuBase.Get_Sprite('artwork.png', width = 295, height = 344)
+                    self.dTrackInfo['Album Art'] = self.cMain.cMenuBase.GetSprite('artwork.png', width = 295, height = 344)
                 except: pass
         # check in folder
         if self.bAlbumArtUseFolder and not self.dTrackInfo['Album Art'] and os.path.isfile(dTrack['Filename']):
@@ -197,29 +197,29 @@ class MIXER:
             for sFilename in os.listdir(sDir + "/"):
                 if os.path.splitext(sFilename)[1] in ['.jpeg', '.jpg', '.png', 'bmp']:
                     try:
-                        spAlbumArt=self.cMain.cMenuBase.Get_Sprite(sDir + "/" + sFilename, width = 295, height = 344)
+                        spAlbumArt=self.cMain.cMenuBase.GetSprite(sDir + "/" + sFilename, width = 295, height = 344)
                         if self.dTrackInfo['Album Art']:
                             if spAlbumArt.width > self.dTrackInfo['Album Art'].width:
                                 if spAlbumArt.height > self.dTrackInfo['Album Art'].height: self.dTrackInfo['Album Art'] = spAlbumArt
                         if not self.dTrackInfo['Album Art']: self.dTrackInfo['Album Art'] = spAlbumArt
                     except: pass
 
-    def Play_Next_Track(self):
-        iTrackID = self.plCurrentPlaylist.Get_Next_Track(True, False)
-        self.Add_Track_To_Playlist(None, None, iTrackID, len(self.plCurrentPlaylist.aTracks) == 1)
+    def PlayNextTrack(self):
+        iTrackID = self.plCurrentPlaylist.GetNextTrack(True, False)
+        self.AddTrackToPlaylist(None, None, iTrackID, len(self.plCurrentPlaylist.aTracks) == 1)
 
-    def Play_Previous_Track(self):
-        iTrackID = self.plCurrentPlaylist.Get_Previous_Track(True, False)
-        self.Add_Track_To_Playlist(None, None, iTrackID, len(self.plCurrentPlaylist.aTracks) == 1)
+    def PlayPreviousTrack(self):
+        iTrackID = self.plCurrentPlaylist.GetPreviousTrack(True, False)
+        self.AddTrackToPlaylist(None, None, iTrackID, len(self.plCurrentPlaylist.aTracks) == 1)
 
-    def Volume_Up(self, fAmount):
+    def VolumeUp(self, fAmount):
         self.fVolume = min(1.0, self.fVolume + fAmount)
-        self.cMain.Write_Config('volume', self.fVolume)
+        self.cMain.WriteConfig('volume', self.fVolume)
         self.cMain.cRenderer.Set_Volume(self.fVolume)
 
-    def Volume_Down(self, fAmount):
+    def VolumeDown(self, fAmount):
         self.fVolume = max(0.0, self.fVolume - fAmount)
-        self.cMain.Write_Config('volume', self.fVolume)
+        self.cMain.WriteConfig('volume', self.fVolume)
         self.cMain.cRenderer.Set_Volume(self.fVolume)
 
     def Seek(self, fPercentage):
@@ -227,20 +227,20 @@ class MIXER:
             self.dTrackInfo['Seeked'] = int(fPercentage * self.dTrackInfo['Length'])
             self.cMain.cRenderer.Seek(self.dTrackInfo['Seeked'])
 
-    def Toggle_Pause(self):
+    def TogglePause(self):
         if self.cMain.cRenderer.bPlaying:
             if not self.bPaused:
-                self.cMain.cRenderer.Toggle_Pause()
+                self.cMain.cRenderer.TogglePause()
                 self.bPaused = True
             elif self.bPaused:
-                self.cMain.cRenderer.Toggle_Pause()
+                self.cMain.cRenderer.TogglePause()
                 self.bPaused = False
         if not self.cMain.cRenderer.bPlaying and self.dTrackInfo:
             try:
-                self.Play_Track(self.dTrackInfo['Track ID'])
+                self.PlayTrack(self.dTrackInfo['Track ID'])
                 if self.bPaused:
-                    self.cMain.cRenderer.Toggle_Pause()
+                    self.cMain.cRenderer.TogglePause()
                     self.bPaused = False
             except: pass
-        self.cMain.Write_Config('paused', self.bPaused)
-        self.lblStatusItem.Text([self.Get_Label_Base_Text(), 'PAUSED'][self.bPaused])
+        self.cMain.WriteConfig('paused', self.bPaused)
+        self.lblStatusItem.Text([self.GetLabelBaseText(), 'PAUSED'][self.bPaused])

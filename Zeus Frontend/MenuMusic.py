@@ -1,13 +1,13 @@
 import MenuBase
 
-class MENU(MenuBase.BASE):
+class Menu(MenuBase.Base):
 
     def __init__(self, cMain):
         self.cMain = cMain
-        self.lblTitle = [self.Get_Label("MUSIC", -5000, -5000, font_size = 42, anchor_y = "top", color = (143, 249, 255, 255), bold = True), cMain.window.width/2, 738]
-        self.aMenuButtons = [[self.Get_Sprite('images/menu-buttons/music-library.png'), (75, 372), lambda: self.Select_Menu('Music Library')],
-                             [self.Get_Sprite('images/menu-buttons/music-cd.png'), (378, 372), lambda: self.Select_Menu('Music CD')],
-                             [self.Get_Sprite('images/menu-buttons/music-usb.png'), (681, 372), lambda: self.Select_Menu('Music USB')]]
+        self.lblTitle = [self.GetLabel("MUSIC", -5000, -5000, font_size = 42, anchor_y = "top", color = (143, 249, 255, 255), bold = True), cMain.window.width/2, 738]
+        self.aMenuButtons = [[self.GetSprite('images/menu-buttons/music-library.png'), (75, 372), lambda: self.SelectMenu('Music Library')],
+                             [self.GetSprite('images/menu-buttons/music-cd.png'), (378, 372), lambda: self.SelectMenu('Music CD')],
+                             [self.GetSprite('images/menu-buttons/music-usb.png'), (681, 372), lambda: self.SelectMenu('Music USB')]]
         self.x = 0
 
     def Destroy(self):

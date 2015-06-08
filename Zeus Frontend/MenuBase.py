@@ -1,6 +1,6 @@
 import pyglet
 
-class BASE:
+class Base:
 
     def Init(self):
         pass
@@ -10,24 +10,24 @@ class BASE:
 
     def Draw(self):
         if self.lblTitle:
-            self.lblTitle[0].x = self.Get_X() + self.lblTitle[1]
+            self.lblTitle[0].x = self.GetX() + self.lblTitle[1]
             self.lblTitle[0].y = self.lblTitle[2]
         for m in self.aMenuButtons:
-            m[0].set_position(self.Get_X() + m[1][0], m[1][1])
-            if self.Is_Active():
+            m[0].set_position(self.GetX() + m[1][0], m[1][1])
+            if self.IsActive():
                 if self.Clicked():
-                    if self.Mouse_Over(sprite = m[0]): m[2]()
-        self.Draw_Menu()
+                    if self.MouseOver(sprite = m[0]): m[2]()
+        self.DrawMenu()
 
-    def Draw_Menu(self):
+    def DrawMenu(self):
         # Menu's can define this method and have it called on each redraw.
         pass
 
-    def Draw_List(self, x, y, aItems, iLabelIndex, iSelectedIndex, batch, bFade, bAlpha, bSetY = False):
+    def DrawList(self, x, y, aItems, iLabelIndex, iSelectedIndex, batch, bFade, bAlpha, bSetY = False):
         iSelectedIndex = -1
-        x += self.Get_X()
+        x += self.GetX()
         if self.cMain.cMouse.bDragging and len(aItems) > 8:
-            if self.Is_Active() and not bFade:
+            if self.IsActive() and not bFade:
                 if self.cMain.cMouse.bDragging == "y":
                     self.dListInfo["Scroll Y"] = min(max(self.dListInfo["Scroll Y"] + int(-self.cMain.cMouse.iDragY / 5), 0), len(aItems) * self.dListInfo["Item Height"] - self.dListInfo["List Height"])
         
@@ -46,7 +46,7 @@ class BASE:
                     #Items that are to be displayed within the window need their coordinates set.
                     aItem[iLabelIndex].y = (y + self.dListInfo["List Height"]) - int(self.dListInfo["Item Height"] * (i + 0.5)) + self.dListInfo["Scroll Y"]
                 if self.Clicked() and not bFade:
-                    if self.Mouse_Over(label = aItem[0]) and self.Mouse_Over(sprite = self.dSprites['List Background Cover']):
+                    if self.MouseOver(label = aItem[0]) and self.MouseOver(sprite = self.dSprites['List Background Cover']):
                         iSelectedIndex = i
                 if bFade:
                     aItem[0].color = (aItem[0].color[0], aItem[0].color[1], aItem[0].color[2], bAlpha)
@@ -66,15 +66,15 @@ class BASE:
     def Clicked(self):
         return self.cMain.cMouse.Clicked
 
-    def Long_Clicked(self):
+    def LongClicked(self):
         return self.cMain.cMouse.LongClick
 
-    def Rapid_Clicked(self):
+    def RapidClicked(self):
         if self.cMain.cMouse.bDown:
             return self.cMain.cMouse.cRapidTimer.Expired()
         return False
 
-    def Mouse_Over(self, sprite = None, label = None):
+    def MouseOver(self, sprite = None, label = None):
         # Returns true if mouse is over passed object.
         if sprite != None:
             if self.cMain.cMouse.iX >= sprite.x and self.cMain.cMouse.iX < (sprite.x + sprite.width):
@@ -94,21 +94,21 @@ class BASE:
             return False
         return False
 
-    def Is_Active(self): return (self == self.cMain.Get_Active_Menu() and self.cMain.bMoving == False)
+    def IsActive(self): return (self == self.cMain.GetActiveMenu() and self.cMain.bMoving == False)
 
-    def Get_X(self):
+    def GetX(self):
         x = self.x + self.cMain.aDraw[0] - 1024 * self.cMain.iCurrentIndex
         if self.cMain.cMouse.bDragging == "x":
             x += self.cMain.cMouse.iDragX
         return int(x)
 
-    def Set_X(self):
-        self.x = 1024 * self.cMain.Get_Menu_Index(self)
+    def SetX(self):
+        self.x = 1024 * self.cMain.GetMenuIndex(self)
 
-    def Select_Menu(self, sMenuName):
-        self.cMain.Queue_Menu(sMenuName)
+    def SelectMenu(self, sMenuName):
+        self.cMain.QueueMenu(sMenuName)
 
-    def Get_Sprite(self, sFilename, batch = None, width = 0, height = 0, group = None):
+    def GetSprite(self, sFilename, batch = None, width = 0, height = 0, group = None):
         if not batch:
             batch = self.cMain.batch
         imgSprite = pyglet.image.load(sFilename)
@@ -126,7 +126,7 @@ class BASE:
                                     batch = batch,
                                     group = group)
 
-    def Get_Label(self, sText, x, y, font_size = 36, anchor_x = "center", anchor_y = "center", color = (255, 255, 255, 255), bold = False, batch = None, width = None, height = None):
+    def GetLabel(self, sText, x, y, font_size = 36, anchor_x = "center", anchor_y = "center", color = (255, 255, 255, 255), bold = False, batch = None, width = None, height = None):
         if not batch:
             batch = self.cMain.batch
         try:
@@ -146,7 +146,7 @@ class BASE:
                                  batch = batch,
                                  bold = bold)
 
-    def Crop_Image(self, img, x, y, width, height, iGroupIndex = 0):
+    def CropImage(self, img, x, y, width, height, iGroupIndex = 0):
         return img.get_region(x, y, width, height)
         return pyglet.sprite.Sprite(img.get_region(x, y, width, height),
                                     x = -5000,

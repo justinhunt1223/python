@@ -22,7 +22,7 @@ import time
 window = pyglet.window.Window(1024, 768)
 #window.set_fullscreen()
 
-class TIMER:
+class Timer:
 
     def __init__(self, iDelay, cMain):
         self.cMain = cMain
@@ -38,7 +38,7 @@ class TIMER:
     def Reset(self):
         self.fExpire = self.cMain.fSecond + self.iDelay
 
-class MOUSE:
+class Mouse:
 
     def __init__(self):
         self.cMain = None
@@ -54,21 +54,21 @@ class MOUSE:
         self.cRapidTimer = None
         self.bDown = False
 
-    def Reset_Long_Click_Timer(self):
+    def ResetLongClickTimer(self):
         # 1 second long-press
         if self.cLongClickTimer == None:
-            self.cLongClickTimer = TIMER(1, self.cMain)
+            self.cLongClickTimer = Timer(1, self.cMain)
         else:
             self.cLongClickTimer.Reset()
 
-    def Reset_Rapid_Timer(self):
+    def ResetRapidTimer(self):
         # 1 second long-press
         if self.cRapidTimer == None:
-            self.cRapidTimer = TIMER(0.1, self.cMain)
+            self.cRapidTimer = Timer(0.1, self.cMain)
         else:
             self.cRapidTimer.Reset()
 
-class MAIN:
+class Main:
 
     def __init__(self, cMouse):
         self.batch = pyglet.graphics.Batch()
@@ -77,63 +77,63 @@ class MAIN:
         self.window = window
         self.cMouse = cMouse
         cMouse.cMain = self
-        cMouse.Reset_Long_Click_Timer()
-        cMouse.Reset_Rapid_Timer()
-        self.cMySQL = MySQL.MYSQL()
-        self.cScanMusic = MusicLibrary.SCAN_MUSIC(self)
-        self.cMusicLibrary = MusicLibrary.MUSIC_LIBRARY(self)
-        self.cRenderer = Renderer.RENDERER(self)
-        self.cMixer = Mixer.MIXER(self)
-        self.cStatusBar = StatusBar.STATUS_BAR(self)
+        cMouse.ResetLongClickTimer()
+        cMouse.ResetRapidTimer()
+        self.cMySQL = MySQL.MySql()
+        self.cScanMusic = MusicLibrary.ScanMusic(self)
+        self.cMusicLibrary = MusicLibrary.MusicLibrary(self)
+        self.cRenderer = Renderer.Renderer(self)
+        self.cMixer = Mixer.Mixer(self)
+        self.cStatusBar = StatusBar.StatusBar(self)
         self.imgBackground = pyglet.resource.image("images/background.png")
         self.aDraw = [0, 0.0] #x, dx
         self.fDragSpeedX = 0.0
         self.fDragSpeedY = 0.0
         self.iMoveSpeed = lambda: 3.8
         self.bMoving = False
-        self.dMenus = {'Main': MenuMain.MENU(self),
-                       'Music': MenuMusic.MENU(self),
-                       'Music Library': MenuMusicLibrary.MENU(self)}
+        self.dMenus = {'Main': MenuMain.Menu(self),
+                       'Music': MenuMusic.Menu(self),
+                       'Music Library': MenuMusicLibrary.Menu(self)}
         self.aMenuQueue = []
         self.iCurrentIndex = -1
         self.iTargetIndex = -1
         for m in self.dMenus.values():
             m.Init()
         self.cMouse.bDragging = 'y'
-        for sName in self.Get_Config('menus', 'Main').split(','):
-            self.Queue_Menu(sName)
+        for sName in self.GetConfig('menus', 'Main').split(','):
+            self.QueueMenu(sName)
             self.aMenuQueue[self.iTargetIndex].Draw()
             self.iCurrentIndex = self.iTargetIndex
         self.cMenuBase = self.aMenuQueue[0]
-        self.aPanelButtons = [[self.cMenuBase.Get_Sprite('images/panel/power.png'), (25, 62), self.Panel_Quit, lambda: None],
-                              [self.cMenuBase.Get_Sprite('images/panel/back.png'), (90, 62), self.Panel_Home, lambda: None],
-                              [self.cMenuBase.Get_Sprite('images/panel/wifi.png'), (155, 62), self.Panel_WiFi, lambda: None],
-                              [self.cMenuBase.Get_Sprite('images/panel/media-play.png'), (625, 35), self.Panel_Pause, lambda: None],
-                              [self.cMenuBase.Get_Sprite('images/panel/media-next.png'), (750, 35), self.Panel_Next, lambda: None],
-                              [self.cMenuBase.Get_Sprite('images/panel/media-prev.png'), (515, 35), self.Panel_Previous, lambda: None],
-                              [self.cMenuBase.Get_Sprite('images/panel/volume-up.png'), (886, 74), lambda: None, self.Panel_Volume_Up],
-                              [self.cMenuBase.Get_Sprite('images/panel/volume-down.png'), (948, 74), lambda: None, self.Panel_Volume_Down]]
+        self.aPanelButtons = [[self.cMenuBase.GetSprite('images/panel/power.png'), (25, 62), self.PanelQuit, lambda: None],
+                              [self.cMenuBase.GetSprite('images/panel/back.png'), (90, 62), self.PanelHome, lambda: None],
+                              [self.cMenuBase.GetSprite('images/panel/wifi.png'), (155, 62), self.PanelWiFi, lambda: None],
+                              [self.cMenuBase.GetSprite('images/panel/media-play.png'), (625, 35), self.PanelPause, lambda: None],
+                              [self.cMenuBase.GetSprite('images/panel/media-next.png'), (750, 35), self.PanelNext, lambda: None],
+                              [self.cMenuBase.GetSprite('images/panel/media-prev.png'), (515, 35), self.PanelPrevious, lambda: None],
+                              [self.cMenuBase.GetSprite('images/panel/volume-up.png'), (886, 74), lambda: None, self.PanelVolumeUp],
+                              [self.cMenuBase.GetSprite('images/panel/volume-down.png'), (948, 74), lambda: None, self.PanelVolumeDown]]
         
         # Date/Time is refreshed once a second.
-        self.lblTime = self.cMenuBase.Get_Label("", 220, 81, font_size = 22, anchor_x = "left", anchor_y = "bottom", bold = True, color = (143, 249, 255, 255))
-        self.lblDate = self.cMenuBase.Get_Label("", 220, 52, font_size = 22, anchor_x = "left", anchor_y = "bottom", bold = True, color = (143, 249, 255, 255))
-        self.Update_Date_Time()
-        pyglet.clock.schedule_interval(lambda e: self.Update_Date_Time(), 1)
+        self.lblTime = self.cMenuBase.GetLabel("", 220, 81, font_size = 22, anchor_x = "left", anchor_y = "bottom", bold = True, color = (143, 249, 255, 255))
+        self.lblDate = self.cMenuBase.GetLabel("", 220, 52, font_size = 22, anchor_x = "left", anchor_y = "bottom", bold = True, color = (143, 249, 255, 255))
+        self.UpdateDateTime()
+        pyglet.clock.schedule_interval(lambda e: self.UpdateDateTime(), 1)
         
         for btnPanel in self.aPanelButtons:
             btnPanel[0].set_position(btnPanel[1][0], btnPanel[1][1])
         self.fps = pyglet.clock.ClockDisplay()
         
-        self.cMixer.Play_Track(self.cMixer.plCurrentPlaylist.Get_Current_Track())
-        self.cRenderer.Seek(float(self.Get_Config('trackPosition', '0.0')) * 1.0)
+        self.cMixer.PlayTrack(self.cMixer.plCurrentPlaylist.GetCurrentTrack())
+        self.cRenderer.Seek(float(self.GetConfig('trackPosition', '0.0')) * 1.0)
         if self.cMixer.bPaused:
-            self.cRenderer.Toggle_Pause()
+            self.cRenderer.TogglePause()
 
-    def Update_Date_Time(self):
+    def UpdateDateTime(self):
         self.lblTime.text = time.strftime("%H:%M:%S")
         self.lblDate.text = datetime.date.today().strftime("%d %B")
 
-    def Timer(self, iDelay): return TIMER(iDelay, self)
+    def Timer(self, iDelay): return Timer(iDelay, self)
 
     def Save(self):
         sMenus = ''
@@ -142,63 +142,63 @@ class MAIN:
                 if m == mMenu:
                     sMenus += sName + ','
         sMenus = sMenus.rstrip(',')
-        self.Write_Config('menus', sMenus)
-        self.Write_Config('menuCount', self.iCurrentIndex)
+        self.WriteConfig('menus', sMenus)
+        self.WriteConfig('menuCount', self.iCurrentIndex)
 
-    def Panel_Quit(self):
+    def PanelQuit(self):
         pass
 
-    def Panel_Home(self):
+    def PanelHome(self):
         pass
 
-    def Panel_WiFi(self):
+    def PanelWiFi(self):
         pass
 
-    def Panel_Pause(self):
-        self.cMixer.Toggle_Pause()
+    def PanelPause(self):
+        self.cMixer.TogglePause()
 
-    def Panel_Next(self):
-        self.cMixer.Play_Next_Track()
+    def PanelNext(self):
+        self.cMixer.PlayNextTrack()
 
-    def Panel_Previous(self):
-        self.cMixer.Play_Previous_Track()
+    def PanelPrevious(self):
+        self.cMixer.PlayPreviousTrack()
 
-    def Panel_Volume_Up(self):
-        self.cMixer.Volume_Up(0.01)
+    def PanelVolumeUp(self):
+        self.cMixer.VolumeUp(0.01)
 
-    def Panel_Volume_Down(self):
-        self.cMixer.Volume_Down(0.01)
+    def PanelVolumeDown(self):
+        self.cMixer.VolumeDown(0.01)
 
-    def Write_Config(self, sEntry, sData):
-        if len(self.cMySQL.Run_Query("SELECT * FROM Config WHERE Entry = %s;", (sEntry))) == 0:
+    def WriteConfig(self, sEntry, sData):
+        if len(self.cMySQL.RunQuery("SELECT * FROM Config WHERE Entry = %s;", (sEntry))) == 0:
             #Entry doesn't exist, so make it.
-            self.cMySQL.Run_Query("INSERT INTO Config (Entry, Data) VALUES(%s, %s);", (sEntry, sData))
+            self.cMySQL.RunQuery("INSERT INTO Config (Entry, Data) VALUES(%s, %s);", (sEntry, sData))
         else:
-            self.cMySQL.Run_Query("UPDATE Config SET Data = %s WHERE Entry = %s;", (sData, sEntry))
+            self.cMySQL.RunQuery("UPDATE Config SET Data = %s WHERE Entry = %s;", (sData, sEntry))
 
-    def Get_Config(self, sEntry, sDefault = ''):
-        qConfig = self.cMySQL.Run_Query("SELECT * FROM Config WHERE Entry = %s;", (sEntry))
+    def GetConfig(self, sEntry, sDefault = ''):
+        qConfig = self.cMySQL.RunQuery("SELECT * FROM Config WHERE Entry = %s;", (sEntry))
         if qConfig:
             return qConfig[0]['Data']
-        self.Write_Config(sEntry, sDefault)
-        return self.Get_Config(sEntry)
+        self.WriteConfig(sEntry, sDefault)
+        return self.GetConfig(sEntry)
 
-    def Get_Active_Menu(self):
+    def GetActiveMenu(self):
         return self.aMenuQueue[self.iCurrentIndex]
 
-    def Get_Menu_Index(self, cMenu):
+    def GetMenuIndex(self, cMenu):
         return self.aMenuQueue.index(cMenu)
 
-    def Get_Menu(self, sMenuName):
+    def GetMenu(self, sMenuName):
         return self.dMenus[sMenuName]
 
-    def Queue_Menu(self, sMenuName):
+    def QueueMenu(self, sMenuName):
         if self.dMenus.has_key(sMenuName):
             self.aMenuQueue.append(self.dMenus[sMenuName])
-            self.dMenus[sMenuName].Set_X()
+            self.dMenus[sMenuName].SetX()
             self.iTargetIndex += 1
 
-    def Unqueue_Menu(self):
+    def UnqueueMenu(self):
         self.aMenuQueue[len(self.aMenuQueue) - 1].Destroy()
         self.aMenuQueue.pop(len(self.aMenuQueue) - 1)
 
@@ -226,7 +226,7 @@ class MAIN:
                     self.aDraw[0] = 0
                     self.aDraw[1] = 0
                     self.iCurrentIndex -= 1
-                    self.Unqueue_Menu()
+                    self.UnqueueMenu()
                     self.Save()
         elif self.aDraw[0] != 0:
             if self.aDraw[0] > 0:
@@ -239,14 +239,14 @@ class MAIN:
                 self.aDraw[1] = 0.0
         for btnPanel in self.aPanelButtons:
             if self.cMenuBase.Clicked():
-                if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[2]()
-            if self.cMenuBase.Rapid_Clicked():
-                if self.cMenuBase.Mouse_Over(sprite = btnPanel[0]): btnPanel[3]()
+                if self.cMenuBase.MouseOver(sprite = btnPanel[0]): btnPanel[2]()
+            if self.cMenuBase.RapidClicked():
+                if self.cMenuBase.MouseOver(sprite = btnPanel[0]): btnPanel[3]()
         self.cStatusBar.Draw()
         #self.fps.draw()
 
-cMouse = MOUSE()
-cMain = MAIN(cMouse)
+cMouse = Mouse()
+cMain = Main(cMouse)
 
 @window.event
 def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
@@ -294,7 +294,7 @@ def on_mouse_press(x, y, button, modifiers):
         cMouse.iDragY = 0
         cMain.fDragSpeedX = 0.0
         cMain.fDragSpeedY = 0.0
-        cMouse.Reset_Long_Click_Timer()
+        cMouse.ResetLongClickTimer()
 
 @window.event
 def on_mouse_release(x, y, button, modifiers):
@@ -318,7 +318,7 @@ def on_mouse_release(x, y, button, modifiers):
         cMouse.LongClick = False
 
 def draw(dt):
-    window.clear()
+    window.Clear()
     cMain.Draw()
     # To capture a mouse click, a few flags are used.
     if cMouse.bCanClick:

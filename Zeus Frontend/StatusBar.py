@@ -1,7 +1,7 @@
 import pyglet
 import MenuBase
 
-class STATUS_ITEM:
+class StatusBarItem:
 
     def __init__(self, lblText, bRepeat, bUrgent, iDelay):
         self.lblText = lblText
@@ -9,7 +9,7 @@ class STATUS_ITEM:
         self.bUrgent = bUrgent
         self.iDelay = iDelay
 
-    def Roll_Up(self):
+    def RollUp(self):
         if self.lblText.y < 0:
             self.lblText.y += 3
             if self.lblText.y > 0:
@@ -19,7 +19,7 @@ class STATUS_ITEM:
         if self.lblText.y == 0:
             return True
 
-    def Roll_Down(self):
+    def RollDown(self):
         if self.lblText.y > -40:
             self.lblText.y -= 3
             if self.lblText.y < -40:
@@ -39,7 +39,7 @@ class STATUS_ITEM:
                 pass
             self.lblText.text = sText
 
-class STATUS_BAR(MenuBase.BASE):
+class StatusBar(MenuBase.Base):
 
     def __init__(self, cMain):
         self.cMain = cMain
@@ -49,11 +49,11 @@ class STATUS_BAR(MenuBase.BASE):
         self.cTarget = None
         self.cTimer = cMain.Timer(0)
 
-    def Add_Item(self, sText, bRepeat, bUrgent = False, iDelay = 3):
+    def AddItem(self, sText, bRepeat, bUrgent = False, iDelay = 3):
         if bUrgent:
             #Urgent items can't repeat, it messes with the rotation.
             bRepeat = False
-        cStatusItem = STATUS_ITEM(self.Get_Label(sText, 6, -40, font_size = 28, anchor_x = "left", anchor_y = "bottom", batch = self.cMain.batch, color = (143, 249, 255, 255), bold = True), bRepeat, bUrgent, iDelay)
+        cStatusItem = StatusBarItem(self.GetLabel(sText, 6, -40, font_size = 28, anchor_x = "left", anchor_y = "bottom", batch = self.cMain.batch, color = (143, 249, 255, 255), bold = True), bRepeat, bUrgent, iDelay)
         #Insert the new item at the correct position.
         if bUrgent:
             self.aUrgent.append(cStatusItem)
@@ -64,7 +64,7 @@ class STATUS_BAR(MenuBase.BASE):
                 self.cTarget = cStatusItem
         return cStatusItem
 
-    def Remove_Item(self, cStatusItem):
+    def RemoveItem(self, cStatusItem):
         if cStatusItem in self.aItems:
             try:
                 self.aItems.remove(cStatusItem)
@@ -79,14 +79,14 @@ class STATUS_BAR(MenuBase.BASE):
     def Draw(self):
         if self.cTarget:
             if self.cCurrent and self.cTimer.Expired() and (len(self.aItems) > 1 or len(self.aUrgent) > 0):
-                if self.cCurrent.Roll_Down() == True:
+                if self.cCurrent.RollDown() == True:
                     if self.cCurrent.bRepeat == False or self.cCurrent.bUrgent:
-                        self.Remove_Item(self.cCurrent)
+                        self.RemoveItem(self.cCurrent)
                         if self.cTarget == self.cCurrent:
                             #TODO: Not sure why this needs to be here. Otherwise, urgent messages display twice.
                             self.cTarget = None
                     self.cCurrent = None
-            elif self.cTarget.Roll_Up():
+            elif self.cTarget.RollUp():
                 self.cCurrent = self.cTarget
                 self.cTimer = self.cMain.Timer(self.cCurrent.iDelay)
                 self.cTarget = None
